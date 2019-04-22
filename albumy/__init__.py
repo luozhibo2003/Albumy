@@ -16,7 +16,7 @@ from albumy.blueprints.ajax import ajax_bp
 from albumy.blueprints.auth import auth_bp
 from albumy.blueprints.main import main_bp
 from albumy.blueprints.user import user_bp
-from albumy.decorators import bootstrap, db, login_manager, mail, moment, csrf, migrate
+from albumy.extensions import bootstrap, db, login_manager, mail, moment, csrf, migrate
 from albumy.settings import config
 
 
