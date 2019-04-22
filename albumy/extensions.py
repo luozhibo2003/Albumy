@@ -20,3 +20,4 @@ login_manager = LoginManager()
 mail = Mail()
 moment = Moment()
 csrf = CSRFProtect()
+

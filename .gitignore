@@ -175,6 +175,4 @@ fabric.properties
 .idea/encodings.xml
 .idea/misc.xml
 .idea/modules.xml
-albumy/static/
-albumy/templates/
-uploads/
+.idea/webResources.xml
