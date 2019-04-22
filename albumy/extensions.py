@@ -21,3 +21,10 @@ mail = Mail()
 moment = Moment()
 csrf = CSRFProtect()
 
+# login_manager.login_view = 'auth.login'
+# # login_manager.login_message = 'Your custom message'
+# login_manager.login_message_category = 'warning'
+#
+# login_manager.refresh_view = 'auth.re_authenticate'
+# # login_manager.needs_refresh_message = 'Your custom message'
+# login_manager.needs_refresh_message_category = 'warning'

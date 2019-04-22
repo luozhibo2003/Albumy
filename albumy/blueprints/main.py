@@ -15,3 +15,13 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     return '首页'
+
+
+@main_bp.route('/explore')
+def explore():
+    return 'explore'
+
+
+@main_bp.route('/search')
+def search():
+    return 'explore'

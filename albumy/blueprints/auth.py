@@ -24,12 +24,17 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data.lower()).first()
-        if user is not None and user.validate_password(form.password.data):
-            if login_user(user, form.remember_me.data):
-                flash('登录成功', 'info')
-                return redirect_back()
-            else:
-                flash('你的账户已被锁定', 'warning')
-                return redirect(url_for('main.index'))
-        flash('无效的邮箱或者密码.', 'warning')
+    if user is not None and user.validate_password(form.password.data):
+        if login_user(user, form.remember_me.data):
+            flash('登录成功', 'info')
+            return redirect_back()
+        else:
+            flash('你的账户已被锁定', 'warning')
+            return redirect(url_for('main.index'))
+    flash('无效的邮箱或者密码.', 'warning')
     return render_template('auth/login.html', form=form)
+
+
+@auth_bp.route('/register')
+def register():
+    return 'register'
