@@ -8,6 +8,7 @@
 import os
 from datetime import datetime
 
+from flask_avatars import Identicon
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -33,8 +34,23 @@ class User(db.Model, UserMixin):
     locked = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        self.generate_avatar()
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def validate_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_avatar(self):
+        avatar = Identicon()
+        filenames = avatar.generate(text=self.username)
+        self.avatar_s = filenames[0]
+        self.avatar_m = filenames[1]
+        self.avatar_l = filenames[2]
+        db.session.commit()
+
+    def can(self, permission_name):
+        pass

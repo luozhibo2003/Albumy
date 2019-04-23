@@ -16,6 +16,12 @@ flask-moment = "*"
 flask-migrate = "*"
 python-dotenv = "*"
 pymysql = "*"
+flask-avatars = "*"
+flask-whooshee = "*"
+flask = "*"
+faker = "*"
+flask-dropzone = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"

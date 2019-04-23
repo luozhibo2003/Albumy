@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% from 'bootstrap/form.html' import render_form %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block content %}
     <div class="jumbotron">
@@ -11,12 +11,12 @@
             </div>
             <div class="col-md-4">
                 <div class="card mb-3 w-100 bg-light">
-                    <div class="card-header"><h4>Log in to Albumy</h4></div>
+                    <div class="card-header"><h4>Welcome to Albumy!</h4></div>
                     <div class="card-body">
                         {{ render_form(form) }}
                         <hr>
-                        <p class="small"><a href="{{ url_for('.register') }}">注册一个新账户</a></p>
-                        <p class="small"><a href="{{ url_for('.forget_password') }}">忘记密码</a></p>
+                        <small>已经拥有一个账户? <a href="{{ url_for('.login') }}">点击登录</a>
+                        </small>
                     </div>
                 </div>
             </div>

@@ -16,7 +16,7 @@ from albumy.blueprints.ajax import ajax_bp
 from albumy.blueprints.auth import auth_bp
 from albumy.blueprints.main import main_bp
 from albumy.blueprints.user import user_bp
-from albumy.extensions import bootstrap, db, login_manager, mail, moment, csrf, migrate
+from albumy.extensions import bootstrap, db, login_manager, mail, moment, csrf, migrate, avatars
 from albumy.models import User
 from albumy.settings import config
 
@@ -29,6 +29,7 @@ def register_extensions(app):
     mail.init_app(app)
     moment.init_app(app)
     csrf.init_app(app)
+    avatars.init_app(app)
 
 
 def register_blueprints(app):
@@ -71,10 +72,10 @@ def register_shell_context(app):
         return dict(db=db, User=User)
 
 
-def register_template_context(app):
-    @app.context_processor
-    def make_template_context():
-        pass
+# def register_template_context(app):
+#     @app.context_processor
+#     def make_template_context():
+#         pass
 
 
 def create_app(config_name=None):
@@ -88,6 +89,6 @@ def create_app(config_name=None):
     register_blueprints(app)
     register_errorhandlers(app)
     register_shell_context(app)
-    register_template_context(app)
+    # register_template_context(app)
 
     return app
