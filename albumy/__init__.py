@@ -16,8 +16,8 @@ from albumy.blueprints.ajax import ajax_bp
 from albumy.blueprints.auth import auth_bp
 from albumy.blueprints.main import main_bp
 from albumy.blueprints.user import user_bp
-from albumy.extensions import bootstrap, db, login_manager, mail, moment, csrf, migrate, avatars
-from albumy.models import User
+from albumy.extensions import bootstrap, db, login_manager, mail, moment, csrf, migrate, avatars, dropzone, whooshee
+from albumy.models import User, Role
 from albumy.settings import config
 
 
@@ -30,6 +30,8 @@ def register_extensions(app):
     moment.init_app(app)
     csrf.init_app(app)
     avatars.init_app(app)
+    dropzone.init_app(app)
+    whooshee.init_app(app)
 
 
 def register_blueprints(app):
@@ -78,6 +80,30 @@ def register_shell_context(app):
 #         pass
 
 
+def register_commands(app):
+    @app.cli.command()
+    @click.option('--drop', is_flag=True, help='Create after drop.')
+    def initdb(drop):
+        """Initialize the database."""
+        if drop:
+            click.confirm('This operation will delete the database,do you want to coninue?', abort=True)
+            db.drop_all()
+            click.echo('Drop tables.')
+        db.create_all()
+        click.echo('Initialized database.')
+
+    @app.cli.command()
+    def init():
+        """Initialize Albumy."""
+        click.echo('Initializing the database...')
+        db.create_all()
+
+        click.echo('Initializing the roles and permissions...')
+        Role.init_role()
+
+        click.echo('Done.')
+
+
 def create_app(config_name=None):
     if config_name is None:
         config_name = os.getenv('FLASK_CONFIG', 'development')
@@ -87,6 +113,7 @@ def create_app(config_name=None):
 
     register_extensions(app)
     register_blueprints(app)
+    register_commands(app)
     register_errorhandlers(app)
     register_shell_context(app)
     # register_template_context(app)
