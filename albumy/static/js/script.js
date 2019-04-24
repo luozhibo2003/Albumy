@@ -1,6 +1,8 @@
 $(function () {
     var default_error_message = 'Server error, please try again later.';
 
+    //ajaxSetup函数中的if判断是为了确保请求的HTTP方法不是GET、
+    // HEAD、OPTIONS或TRACE，并且请求是发向站内的。
     $.ajaxSetup({
         beforeSend: function (xhr, settings) {
             if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
@@ -17,8 +19,7 @@ $(function () {
             var IS_JSON = true;
             try {
                 var data = JSON.parse(request.responseText);
-            }
-            catch (err) {
+            } catch (err) {
                 IS_JSON = false;
             }
             if (IS_JSON && data !== undefined && data.hasOwnProperty('message')) {
@@ -35,16 +36,16 @@ $(function () {
     var flash = null;
 
     function toast(body, category) {
-        clearTimeout(flash);
+        clearTimeout(flash);  // 清除未完成的计时
         var $toast = $('#toast');
         if (category === 'error') {
-            $toast.css('background-color', 'red')
+            $toast.css('background-color', 'red') // 错误类型消息
         } else {
-            $toast.css('background-color', '#333')
+            $toast.css('background-color', '#333') // 普通类型消息
         }
-        $toast.text(body).fadeIn();
+        $toast.text(body).fadeIn();  //淡入
         flash = setTimeout(function () {
-            $toast.fadeOut();
+            $toast.fadeOut();  //3秒后淡出
         }, 3000);
     }
 
@@ -192,7 +193,20 @@ $(function () {
         });
     }
 
+    // var hover_timer = null;
+    // $('.profile-popover').hover(
+    //     function () { // 鼠标进入时触发的函数
+    //     ...
+    //     },
+    //     function () { // 鼠标离开时触发的函数
+    //     ...
+    //     }
+    // )
     $('.profile-popover').hover(show_profile_popover.bind(this), hide_profile_popover.bind(this));
+    //这里使用on（）方法，
+    //第一参数传入click事件
+    //第二个参数为选择器，
+    //第三个参数为传入触发的回调函数。
     $(document).on('click', '.follow-btn', follow.bind(this));
     $(document).on('click', '.unfollow-btn', unfollow.bind(this));
     $(document).on('click', '.collect-btn', collect.bind(this));

@@ -15,9 +15,9 @@ from sqlalchemy.sql.expression import func
 from albumy.extensions import db
 from albumy.decorators import confirm_required, permission_required
 from albumy.forms.main import CommentForm, DescriptionForm, TagForm
-from albumy.models import Photo, Collect, Comment, Notification, Follow, Tag
+from albumy.models import Photo, Collect, Comment, Notification, Follow, Tag, User
 from albumy.notifications import push_collect_notification, push_comment_notification
-from albumy.utils import rename_image, resize_image, flash_errors
+from albumy.utils import rename_image, resize_image, flash_errors, redirect_back
 
 main_bp = Blueprint('main', __name__)
 
@@ -48,7 +48,23 @@ def explore():
 
 @main_bp.route('/search')
 def search():
-    return 'search'
+    q = request.args.get('q', '').strip()
+    if q == '':
+        flash('Enter keyword about photo, user or tag.', 'warning')
+        return redirect_back()
+
+    category = request.args.get('category', 'photo')
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['ALBUMY_SEARCH_RESULT_PER_PAGE']
+    if category == 'user':
+        pagination = User.query.whooshee_search(q).paginate(page, per_page)
+    elif category == 'tag':
+        pagination = Tag.query.whooshee_search(q).paginate(page, per_page)
+    else:
+        pagination = Photo.query.whooshee_search(q).paginate(page, per_page)
+    results = pagination.items
+    return render_template('main/search.html', q=q, results=results, pagination=pagination, category=category)
+
 
 
 @main_bp.route('/upload', methods=['GET', 'POST'])
@@ -110,7 +126,7 @@ def show_collections(photo_id):
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config['ALBUMY_USER_PER_PAGE']
     pagination = Collect.query.with_parent(photo).order_by(Collect.timestamp.desc()).paginate(page, per_page)
-    collects = pagination.iterms
+    collects = pagination.items
     return render_template('main/collectors.html', collects=collects, photo=photo, pagination=pagination)
 
 
@@ -220,6 +236,19 @@ def show_notifications():
     pagination = notifications.order_by(Notification.timestamp.desc()).paginate(page, per_page)
     notifications = pagination.items
     return render_template('main/notifications.html', pagination=pagination, notifications=notifications)
+
+
+@main_bp.route('/notification/read/<int:notification_id>', methods=['POST'])
+@login_required
+def read_notification(notification_id):
+    notification = Notification.query.get_or_404(notification_id)
+    if current_user != notification.receiver:
+        abort(403)
+
+    notification.is_read = True
+    db.session.commit()
+    flash('Notification archived.', 'success')
+    return redirect(url_for('.show_notifications'))
 
 
 @main_bp.route('/notifications/read/all', methods=['POST'])

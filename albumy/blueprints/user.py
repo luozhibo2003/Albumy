@@ -63,7 +63,7 @@ def follow(username):
     current_user.follow(user)
     flash('关注成功', 'success')
     if user.receive_follow_notification:
-        push_follow_notification(follow=current_user, receiver=user)
+        push_follow_notification(follower=current_user, receiver=user)
     return redirect_back()
 
 

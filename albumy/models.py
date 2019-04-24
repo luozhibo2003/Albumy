@@ -13,7 +13,7 @@ from flask_avatars import Identicon
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from albumy.extensions import db
+from albumy.extensions import db, whooshee
 
 
 # relationship object
@@ -28,6 +28,7 @@ class Follow(db.Model):
     followed = db.relationship('User', foreign_keys=[followed_id], back_populates='followers', lazy='joined')
 
 
+@whooshee.register_model('name', 'username')
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, index=True)
@@ -58,6 +59,7 @@ class User(db.Model, UserMixin):
     photos = db.relationship('Photo', back_populates='author', cascade='all')
     comments = db.relationship('Comment', back_populates='author', cascade='all')
     collections = db.relationship('Collect', back_populates='collector', cascade='all')
+
     following = db.relationship('Follow', foreign_keys=[Follow.follower_id], back_populates='follower',
                                 lazy='dynamic', cascade='all')
     followers = db.relationship('Follow', foreign_keys=[Follow.followed_id], back_populates='followed',
@@ -69,6 +71,7 @@ class User(db.Model, UserMixin):
         super(User, self).__init__(**kwargs)
         self.generate_avatar()
         self.set_role()
+        self.follow(self)  # 用户自己关注自己，方便自己可以看到自己的动态
 
     def set_role(self):
         if self.role is None:
@@ -96,13 +99,19 @@ class User(db.Model, UserMixin):
             db.session.delete(follow)
             db.session.commit()
 
+    # 判断用户是否正在关注某个用户
     def is_following(self, user):
         if user.id is None:  # when follow self, user.id will be None
             return False
         return self.following.filter_by(followed_id=user.id).first() is not None
 
+    # 判断用户是否被某个用户关注
     def is_followed_by(self, user):
         return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    @property
+    def followed_photos(self):
+        return Photo.query.join(Follow, Follow.followed_id == Photo.author_id).filter(Follow.follower_id == self.id)
 
     def generate_avatar(self):
         avatar = Identicon()
@@ -152,6 +161,16 @@ class User(db.Model, UserMixin):
     def unblock(self):
         self.active = True
         db.session.commit()
+
+
+@db.event.listens_for(User, 'after_delete', named=True)
+def delete_avatars(**kwargs):
+    target = kwargs['target']
+    for filename in [target.avatar_s, target.avatar_m, target.avatar_l, target.avatar_raw]:
+        if filename is not None:  # avatar_raw may be None
+            path = os.path.join(current_app.config['AVATARS_SAVE_PATH'], filename)
+            if os.path.exists(path):  # not every filename map a unique file
+                os.remove(path)
 
 
 # relationship table
@@ -208,6 +227,7 @@ tagging = db.Table('tagging',
                    )
 
 
+@whooshee.register_model('description')
 class Photo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(500))
@@ -238,6 +258,7 @@ def delete_photos(**kwargs):
             os.remove(path)
 
 
+@whooshee.register_model('name')
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
